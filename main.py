@@ -1,15 +1,9 @@
 from registry import Registry
-from os import system, name
 import argparse
 import pyfiglet
 
 
 def main():
-    # Clear the screen for different OS
-    if name == "nt":
-        system("cls ")
-    else:
-        system("clear")
     # Parse the url from arg parser
     parser = argparse.ArgumentParser(
         prog='DRegCLI',
