@@ -1,5 +1,5 @@
 from requests import get, exceptions
-
+from os import system, name
 
 class Registry:
     def __init__(self, url):
@@ -33,32 +33,45 @@ class Registry:
         exit(0)
 
     def clear_screen(self):
-        from os import system, name
         if name == "nt":
             system("cls")
         else:
             system("clear")
 
-    def set_image(self,cmd):
-        self.image_name = cmd.split(" ")[1]
-        print("Image to inspect is set to",self.image_name)
+    def set_image(self,args):
+        try:
+            data = get(self.url + "/v2/_catalog")
+            image = args[0]
+            data = data.text
+            if data.find(image) == -1:
+                print("Image does not exist in registry")
+            else:
+                self.image_name = image
+                print("Image to inspect is set to", self.image_name)
+        except (exceptions.HTTPError, exceptions.ConnectionError) as error:
+            print(error.args[0])
 
     def command_handler(self, cmd):
         match cmd:
             case "get_images":
                 self.get_repo_images()
+                return
             case "help":
                 self.get_help()
+                return
             case "clear":
                 self.clear_screen()
+                return
             case "exit":
                 self.exit_program()
+                return
 
         args = cmd.split(" ")[1:]
         cmd = cmd.split(" ")[0]
         if cmd == "set":
-            self.image_name = args[0]
-            print("Setting image to", self.image_name)
+            self.set_image(args)
+        else:
+            print("Command",cmd,"does not exist. Check the help menu by typing help")
 
 
 

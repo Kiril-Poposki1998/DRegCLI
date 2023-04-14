@@ -22,7 +22,7 @@ def main():
             input_cmd = input("cli>")
             reg.command_handler(input_cmd)
         except KeyboardInterrupt:
-            print("Exiting...")
+            print("\nExiting...")
             exit(0)
 
 
