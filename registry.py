@@ -57,7 +57,7 @@ class Registry:
         try:
             digest = self.get_image_hash(args)
             data = delete(self.url + "/v2/" + self.image_name + "/manifests/" + digest)
-            if self.image_name is not None:
+            if self.image_name is not None and data.status_code == 202:
                 print("Tag",args[0],"has been deleted")
                 data = get(self.url + "/v2/" + self.image_name + "/manifests/" + args[0])
                 json_object = json.loads(data.text)
