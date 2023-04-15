@@ -41,11 +41,30 @@ class Registry:
         except (exceptions.HTTPError, exceptions.ConnectionError) as error:
             print(error.args[0])
 
+    def get_manifests(self,args):
+        if len(args) == 0:
+            print("Tag name has to be specified")
+            return
+        try:
+            if self.image_name is not None:
+                data = get(self.url + "/v2/"+self.image_name+"/manifests/"+args[0])
+                json_object = json.loads(data.text)
+                layers = json_object["fsLayers"]
+                for i in range(len(layers)):
+                    blob = layers[i]["blobSum"]
+                    print("\t" + str(i + 1) + ".", blob,"\n")
+            else:
+                print("No image name set")
+        except (exceptions.HTTPError, exceptions.ConnectionError) as error:
+            print(error.args[0])
+
+
     def get_help(self):
         print("""
         get_images - get all images stored in registry\n
         list_tags - list tags associated with the name of the image\n
-        set *image name* - set the image to inspect\n
+        get_manifests <tag name> - list all the manifests with the specified tag name\n
+        set <image name> - set the image to inspect\n
         exit - Either CTRL+C or type this to exit\n
         clear - Clears the screen\n
         help - Print this message
@@ -95,6 +114,8 @@ class Registry:
         cmd = cmd.split(" ")[0]
         if cmd == "set":
             self.set_image(args)
+        elif cmd == "get_manifests":
+            self.get_manifests(args)
         else:
             print("Command",cmd,"does not exist. Check the help menu by typing help")
 
