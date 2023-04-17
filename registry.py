@@ -43,7 +43,7 @@ class Registry:
             print(error.args[0])
 
     def get_image_hash(self,args):
-        data = get(self.url+"/v2/"+self.image_name+"/manifests/"+args[0])
+        data = head(self.url+"/v2/"+self.image_name+"/manifests/"+args[0])
         digest = data.headers["Docker-Content-Digest"]
         return digest
 
@@ -54,26 +54,28 @@ class Registry:
         elif self.image_name is None:
             print("Set the image name")
             return
+        data = get(self.url + "/v2/" + self.image_name + "/tags/list")
+        json_object = json.loads(data.text)
+        tags = json_object["tags"]
+        if args[0] not in tags:
+            print("Tag does not exist in tag list")
+            return
         try:
             digest = self.get_image_hash(args)
             data = delete(self.url + "/v2/" + self.image_name + "/manifests/" + digest)
-            if self.image_name is not None and data.status_code == 202:
-                print("Tag",args[0],"has been deleted")
-                data = get(self.url + "/v2/" + self.image_name + "/manifests/" + args[0])
-                json_object = json.loads(data.text)
-                blobs = json_object["fsLayers"]
-                for blob in blobs:
-                    blob_temp = blob["blobSum"]
-                    data = delete(self.url + "/v2/" + self.image_name + "/blobs/" + blob_temp)
-                    shrot_hash = blob_temp.split(":")[1]
-                    if data.status_code == 202:
-                        print("Digest",shrot_hash[:4],"has been deleted")
-                    else:
-                        print("Problem while deleting",blob_temp)
-                return
-            else:
-                print("No image name set")
-                return
+            print("Tag",args[0],"has been deleted")
+            data = get(self.url + "/v2/" + self.image_name + "/manifests/" + args[0])
+            json_object = json.loads(data.text)
+            blobs = json_object["fsLayers"]
+            for blob in blobs:
+                blob_temp = blob["blobSum"]
+                data = delete(self.url + "/v2/" + self.image_name + "/blobs/" + blob_temp)
+                shrot_hash = blob_temp.split(":")[1]
+                if data.status_code == 202:
+                    print("Digest",shrot_hash[:4],"has been deleted")
+                else:
+                    print("Problem while deleting",blob_temp)
+            return
         except (exceptions.HTTPError, exceptions.ConnectionError) as error:
             print(error.args[0])
 
